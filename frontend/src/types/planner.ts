@@ -23,3 +23,11 @@ export interface Task {
   stat: string
   daily_entry_id: number
 }
+
+export interface TaskCreate {
+  title: string
+  scheduled_time: string
+  is_important: boolean
+  xp_reward: number
+  stat: string
+}
