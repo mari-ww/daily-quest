@@ -69,3 +69,20 @@ class ActivityResponse(BaseModel):
 
 class MoodUpdate(BaseModel):
     mood: str | None = None
+
+class QuestCreate(BaseModel):
+    title: str
+
+
+class QuestUpdate(BaseModel):
+    title: str | None = None
+    is_completed: bool | None = None
+
+
+class QuestResponse(BaseModel):
+    id: int
+    title: str
+    is_completed: bool
+    daily_entry_id: int
+
+    model_config = ConfigDict(from_attributes=True)
