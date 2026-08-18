@@ -2,6 +2,8 @@ import type {
   Activity,
   ActivityCreate,
   DailyEntry,
+  Quest,
+  QuestCreate,
   Task,
   TaskCreate,
   TaskUpdate,
@@ -161,6 +163,86 @@ export async function completeActivity(
 
   if (!response.ok) {
     throw new Error("Failed to complete activity")
+  }
+
+  return response.json()
+}
+
+export async function getQuests(
+  dailyEntryId: number,
+): Promise<Quest[]> {
+  const response = await fetch(
+    `${API_URL}/quests/days/${dailyEntryId}`,
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch quests")
+  }
+
+  return response.json()
+}
+
+export async function createQuest(
+  dailyEntryId: number,
+  quest: QuestCreate,
+): Promise<Quest> {
+  const response = await fetch(
+    `${API_URL}/quests/days/${dailyEntryId}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(quest),
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to create quest")
+  }
+
+  return response.json()
+}
+
+export async function updateQuest(
+  questId: number,
+  quest: Partial<QuestCreate & { is_completed: boolean }>,
+): Promise<Quest> {
+  const response = await fetch(
+    `${API_URL}/quests/${questId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(quest),
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to update quest")
+  }
+
+  return response.json()
+}
+
+export async function updateMood(
+  dailyEntryId: number,
+  mood: string,
+): Promise<DailyEntry> {
+  const response = await fetch(
+    `${API_URL}/days/${dailyEntryId}/mood`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ mood }),
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to update mood")
   }
 
   return response.json()

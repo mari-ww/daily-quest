@@ -53,3 +53,14 @@ export interface ActivityCreate {
   mana_reward: number
   stat: string
 }
+
+export interface Quest {
+  id: number
+  title: string
+  is_completed: boolean
+  daily_entry_id: number
+}
+
+export interface QuestCreate {
+  title: string
+}

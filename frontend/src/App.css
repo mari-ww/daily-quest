@@ -342,3 +342,72 @@ input {
     grid-template-columns: 1fr;
   }
 }
+
+.quests-panel {
+  margin-top: 20px;
+}
+
+.quest-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.quest-form input {
+  flex: 1;
+}
+
+.quest-form input,
+.quest-form button {
+  border: 1px solid #ded8e3;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.quest-form button {
+  cursor: pointer;
+  background: #2d2a32;
+  color: white;
+}
+
+.quests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quest-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f7f5f8;
+}
+
+.quest-item.completed {
+  opacity: 0.55;
+}
+
+.quest-item.completed strong {
+  text-decoration: line-through;
+}
+
+@media (max-width: 700px) {
+  .quest-form {
+    flex-direction: column;
+  }
+}
+
+.mood-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mood-card select {
+  border: 1px solid #ded8e3;
+  border-radius: 8px;
+  padding: 8px;
+  background: white;
+}

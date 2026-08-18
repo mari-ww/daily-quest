@@ -3,19 +3,25 @@ import { useEffect, useState } from "react"
 import {
   completeActivity,
   createActivity,
+  createQuest,
   createTask,
   deleteTask,
   getActivities,
   getDailyEntry,
+  getQuests,
   getTasks,
+  updateQuest,
   toggleTask,
   updateTask,
+  updateMood,
 } from "./api/client"
 
 import type {
   Activity,
   ActivityCreate,
   DailyEntry,
+  Quest,
+  QuestCreate,
   Task,
   TaskCreate,
   TaskUpdate,
@@ -47,6 +53,13 @@ const [newActivity, setNewActivity] =
     stat: "creativity",
   })
 
+const [quests, setQuests] = useState<Quest[]>([])
+
+const [newQuest, setNewQuest] =
+  useState<QuestCreate>({
+    title: "",
+  })
+
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -62,9 +75,12 @@ const [newActivity, setNewActivity] =
 
         const activityData = await getActivities(data.id)
 
+        const questData = await getQuests(data.id)
+
         setDailyEntry(data)
         setTasks(taskData)
         setActivities(activityData)
+        setQuests(questData)
       } catch (error) {
         console.error(error)
       } finally {
@@ -228,6 +244,76 @@ async function handleCompleteActivity(
   }
 }
 
+async function handleCreateQuest(
+  event: React.FormEvent<HTMLFormElement>,
+) {
+  event.preventDefault()
+
+  if (!dailyEntry || !newQuest.title.trim()) {
+    return
+  }
+
+  try {
+    const createdQuest = await createQuest(
+      dailyEntry.id,
+      newQuest,
+    )
+
+    setQuests((currentQuests) => [
+      ...currentQuests,
+      createdQuest,
+    ])
+
+    setNewQuest({
+      title: "",
+    })
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+async function handleToggleQuest(
+  quest: Quest,
+) {
+  try {
+    const updatedQuest = await updateQuest(
+      quest.id,
+      {
+        is_completed: !quest.is_completed,
+      },
+    )
+
+    setQuests((currentQuests) =>
+      currentQuests.map((currentQuest) =>
+        currentQuest.id === quest.id
+          ? updatedQuest
+          : currentQuest,
+      ),
+    )
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+async function handleMoodChange(
+  mood: string,
+) {
+  if (!dailyEntry) {
+    return
+  }
+
+  try {
+    const updatedDailyEntry = await updateMood(
+      dailyEntry.id,
+      mood,
+    )
+
+    setDailyEntry(updatedDailyEntry)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
   if (loading) {
     return <p>Loading your daily quest...</p>
   }
@@ -324,14 +410,42 @@ async function handleCompleteActivity(
                 </div>
               ))}
             </div>
-
-            <h2>Mood</h2>
-
-            <p className="mood-value">
-              {dailyEntry.mood ?? "Not set"}
-            </p>
           </section>
         </div>
+        <div className="mood-card">
+  <span>Mood</span>
+
+  <select
+    value={dailyEntry.mood ?? ""}
+    onChange={(event) =>
+      handleMoodChange(event.target.value)
+    }
+  >
+    <option value="">
+      Select mood
+    </option>
+
+    <option value="happy">
+      Happy
+    </option>
+
+    <option value="calm">
+      Calm
+    </option>
+
+    <option value="tired">
+      Tired
+    </option>
+
+    <option value="sad">
+      Sad
+    </option>
+
+    <option value="stressed">
+      Stressed
+    </option>
+  </select>
+</div>
         <section className="panel schedule-panel">
   <div className="section-header">
     <h2>Today's Schedule</h2>
@@ -583,6 +697,63 @@ async function handleCompleteActivity(
           >
             Recharge
           </button>
+        </div>
+      ))
+    )}
+  </div>
+</section>
+<section className="panel quests-panel">
+  <div className="section-header">
+    <div>
+      <h2>Quests</h2>
+      <span>Goals bigger than today's tasks</span>
+    </div>
+  </div>
+
+  <form
+    className="quest-form"
+    onSubmit={handleCreateQuest}
+  >
+    <input
+      type="text"
+      placeholder="Your next big quest..."
+      value={newQuest.title}
+      onChange={(event) =>
+        setNewQuest({
+          title: event.target.value,
+        })
+      }
+    />
+
+    <button type="submit">
+      Add Quest
+    </button>
+  </form>
+
+  <div className="quests-list">
+    {quests.length === 0 ? (
+      <p className="empty-state">
+        No quests yet.
+      </p>
+    ) : (
+      quests.map((quest) => (
+        <div
+          className={`quest-item ${
+            quest.is_completed
+              ? "completed"
+              : ""
+          }`}
+          key={quest.id}
+        >
+          <input
+            type="checkbox"
+            checked={quest.is_completed}
+            onChange={() =>
+              handleToggleQuest(quest)
+            }
+          />
+
+          <strong>{quest.title}</strong>
         </div>
       ))
     )}
