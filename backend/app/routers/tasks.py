@@ -4,7 +4,11 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_db
 from app.models import DailyEntry, Task
 from app.schemas import TaskCreate, TaskResponse, TaskUpdate
-from app.services.gamification import calculate_level
+from app.services.gamification import (
+    calculate_level,
+    update_hp,
+    update_stat,
+)
 
 
 router = APIRouter(
@@ -107,13 +111,40 @@ def toggle_task(
 
     if task.is_completed:
         task.is_completed = False
+
         daily_entry.xp = max(
             0,
             daily_entry.xp - task.xp_reward,
         )
+
+        update_stat(
+            daily_entry,
+            task.stat,
+            -1,
+        )
+
+        update_hp(
+            daily_entry,
+            task.is_important,
+            -10,
+        )
+
     else:
         task.is_completed = True
+
         daily_entry.xp += task.xp_reward
+
+        update_stat(
+            daily_entry,
+            task.stat,
+            1,
+        )
+
+        update_hp(
+            daily_entry,
+            task.is_important,
+            10,
+        )
 
     daily_entry.level = calculate_level(daily_entry.xp)
 
