@@ -70,35 +70,30 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function loadDailyEntry() {
+  async function loadPlanner(date: string) {
+    try {
       setLoading(true)
 
-      try {
-        const data = await getDailyEntry(
-          selectedDate,
-        )
+      const data = await getDailyEntry(date)
 
-        const taskData = await getTasks(data.id)
+      const taskData = await getTasks(data.id)
+      const activityData = await getActivities(data.id)
+      const questData = await getQuests(data.id)
 
-        const activityData =
-          await getActivities(data.id)
-
-        const questData =
-          await getQuests(data.id)
-
-        setDailyEntry(data)
-        setTasks(taskData)
-        setActivities(activityData)
-        setQuests(questData)
-      } catch (error) {
-        console.error(error)
-      } finally {
-        setLoading(false)
-      }
+      setDailyEntry(data)
+      setTasks(taskData)
+      setActivities(activityData)
+      setQuests(questData)
+    } catch (error) {
+      console.error(error)
+      setDailyEntry(null)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    loadDailyEntry()
-  }, [selectedDate])
+  loadPlanner(selectedDate)
+}, [selectedDate])
 
   function changeDay(days: number) {
     const date = new Date(
@@ -416,31 +411,20 @@ function App() {
   return (
     <main className="app">
       <div className="dashboard">
-        <header className="header">
-          <div className="planner-date">
-            <button
-              type="button"
-              onClick={() => changeDay(-1)}
-            >
-              ← Previous
-            </button>
+<header className="header">
+  <div>
+    <h1>Daily Quest</h1>
+    <p>Your daily adventure awaits.</p>
+  </div>
 
-            <div>
-              <h1>Daily Quest</h1>
-
-              <p>
-                {formatSelectedDate()}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => changeDay(1)}
-            >
-              Next →
-            </button>
-          </div>
-        </header>
+  <input
+    type="date"
+    value={selectedDate}
+    onChange={(event) =>
+      setSelectedDate(event.target.value)
+    }
+  />
+</header>
 
         <div className="top-grid">
           <section className="panel character-panel">
