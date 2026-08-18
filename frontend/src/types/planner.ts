@@ -31,3 +31,11 @@ export interface TaskCreate {
   xp_reward: number
   stat: string
 }
+
+export interface TaskUpdate {
+  title?: string
+  scheduled_time?: string
+  is_important?: boolean
+  xp_reward?: number
+  stat?: string
+}

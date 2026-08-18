@@ -2,15 +2,18 @@ import { useEffect, useState } from "react"
 
 import {
   createTask,
+  deleteTask,
   getDailyEntry,
   getTasks,
   toggleTask,
+  updateTask,
 } from "./api/client"
 
 import type {
   DailyEntry,
   Task,
   TaskCreate,
+  TaskUpdate,
 } from "./types/planner"
 
 import "./App.css"
@@ -103,6 +106,52 @@ async function handleToggleTask(taskId: number) {
 
     setDailyEntry(updatedDailyEntry)
     setTasks(updatedTasks)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+async function handleDeleteTask(taskId: number) {
+  try {
+    await deleteTask(taskId)
+
+    setTasks((currentTasks) =>
+      currentTasks.filter(
+        (task) => task.id !== taskId,
+      ),
+    )
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+async function handleEditTask(task: Task) {
+  const title = window.prompt(
+    "Edit task title:",
+    task.title,
+  )
+
+  if (!title?.trim()) {
+    return
+  }
+
+  const taskData: TaskUpdate = {
+    title: title.trim(),
+  }
+
+  try {
+    const updatedTask = await updateTask(
+      task.id,
+      taskData,
+    )
+
+    setTasks((currentTasks) =>
+      currentTasks.map((currentTask) =>
+        currentTask.id === task.id
+          ? updatedTask
+          : currentTask,
+      ),
+    )
   } catch (error) {
     console.error(error)
   }
@@ -345,6 +394,21 @@ async function handleToggleTask(taskId: number) {
               </span>
             </div>
           </div>
+          <div className="task-actions">
+  <button
+    type="button"
+    onClick={() => handleEditTask(task)}
+  >
+    Edit
+  </button>
+
+  <button
+    type="button"
+    onClick={() => handleDeleteTask(task.id)}
+  >
+    Delete
+  </button>
+</div>
         </div>
       ))
     )}

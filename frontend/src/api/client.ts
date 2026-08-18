@@ -2,6 +2,7 @@ import type {
   DailyEntry,
   Task,
   TaskCreate,
+  TaskUpdate,
 } from "../types/planner"
 
 const API_URL = "http://localhost:8000"
@@ -71,4 +72,41 @@ export async function toggleTask(
   }
 
   return response.json()
+}
+
+export async function updateTask(
+  taskId: number,
+  task: TaskUpdate,
+): Promise<Task> {
+  const response = await fetch(
+    `${API_URL}/tasks/${taskId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(task),
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to update task")
+  }
+
+  return response.json()
+}
+
+export async function deleteTask(
+  taskId: number,
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/tasks/${taskId}`,
+    {
+      method: "DELETE",
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to delete task")
+  }
 }

@@ -274,3 +274,21 @@ input {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+.task-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.task-actions button {
+  border: 1px solid #ded8e3;
+  background: white;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.task-actions button:hover {
+  background: #f0ecf3;
+}
