@@ -411,3 +411,42 @@ input {
   padding: 8px;
   background: white;
 }
+
+.planner-date {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.planner-date > div {
+  text-align: center;
+}
+
+.planner-date h1 {
+  margin-bottom: 4px;
+}
+
+.planner-date p {
+  margin: 0;
+  color: #777;
+}
+
+.planner-date button {
+  border: 1px solid #ded8e3;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: white;
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .planner-date {
+    gap: 10px;
+  }
+
+  .planner-date button {
+    padding: 8px 10px;
+  }
+}

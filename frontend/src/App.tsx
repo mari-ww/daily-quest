@@ -10,10 +10,10 @@ import {
   getDailyEntry,
   getQuests,
   getTasks,
+  updateMood,
   updateQuest,
   toggleTask,
   updateTask,
-  updateMood,
 } from "./api/client"
 
 import type {
@@ -35,47 +35,56 @@ function App() {
 
   const [tasks, setTasks] = useState<Task[]>([])
 
-  const [newTask, setNewTask] = useState<TaskCreate>({
-  title: "",
-  scheduled_time: "09:00",
-  is_important: false,
-  xp_reward: 10,
-  stat: "intelligence",
-})
+  const [newTask, setNewTask] =
+    useState<TaskCreate>({
+      title: "",
+      scheduled_time: "09:00",
+      is_important: false,
+      xp_reward: 10,
+      stat: "intelligence",
+    })
 
-const [activities, setActivities] =
-  useState<Activity[]>([])
+  const [activities, setActivities] =
+    useState<Activity[]>([])
 
-const [newActivity, setNewActivity] =
-  useState<ActivityCreate>({
-    title: "",
-    mana_reward: 10,
-    stat: "creativity",
-  })
+  const [newActivity, setNewActivity] =
+    useState<ActivityCreate>({
+      title: "",
+      mana_reward: 10,
+      stat: "creativity",
+    })
 
-const [quests, setQuests] = useState<Quest[]>([])
+  const [quests, setQuests] =
+    useState<Quest[]>([])
 
-const [newQuest, setNewQuest] =
-  useState<QuestCreate>({
-    title: "",
-  })
+  const [newQuest, setNewQuest] =
+    useState<QuestCreate>({
+      title: "",
+    })
+
+  const [selectedDate, setSelectedDate] =
+    useState(
+      new Date().toISOString().split("T")[0],
+    )
 
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const today = new Date()
-      .toISOString()
-      .split("T")[0]
-
     async function loadDailyEntry() {
+      setLoading(true)
+
       try {
-        const data = await getDailyEntry(today)
+        const data = await getDailyEntry(
+          selectedDate,
+        )
 
         const taskData = await getTasks(data.id)
 
-        const activityData = await getActivities(data.id)
+        const activityData =
+          await getActivities(data.id)
 
-        const questData = await getQuests(data.id)
+        const questData =
+          await getQuests(data.id)
 
         setDailyEntry(data)
         setTasks(taskData)
@@ -89,263 +98,365 @@ const [newQuest, setNewQuest] =
     }
 
     loadDailyEntry()
-  }, [])
+  }, [selectedDate])
+
+  function changeDay(days: number) {
+    const date = new Date(
+      `${selectedDate}T12:00:00`,
+    )
+
+    date.setDate(
+      date.getDate() + days,
+    )
+
+    setSelectedDate(
+      date.toISOString().split("T")[0],
+    )
+  }
+
+  function formatSelectedDate() {
+    return new Date(
+      `${selectedDate}T12:00:00`,
+    ).toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    })
+  }
 
   async function handleCreateTask(
-  event: React.FormEvent<HTMLFormElement>,
-) {
-  event.preventDefault()
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
 
-  if (!dailyEntry || !newTask.title.trim()) {
-    return
-  }
+    if (!dailyEntry || !newTask.title.trim()) {
+      return
+    }
 
-  try {
-    const createdTask = await createTask(
-      dailyEntry.id,
-      newTask,
-    )
+    try {
+      const createdTask = await createTask(
+        dailyEntry.id,
+        newTask,
+      )
 
-    setTasks((currentTasks) =>
-      [...currentTasks, createdTask].sort((a, b) =>
-        a.scheduled_time.localeCompare(
-          b.scheduled_time,
+      setTasks((currentTasks) =>
+        [...currentTasks, createdTask].sort(
+          (a, b) =>
+            a.scheduled_time.localeCompare(
+              b.scheduled_time,
+            ),
         ),
-      ),
+      )
+
+      setNewTask({
+        title: "",
+        scheduled_time: "09:00",
+        is_important: false,
+        xp_reward: 10,
+        stat: "intelligence",
+      })
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  async function handleToggleTask(
+    taskId: number,
+  ) {
+    if (!dailyEntry) {
+      return
+    }
+
+    try {
+      await toggleTask(taskId)
+
+      const updatedDailyEntry =
+        await getDailyEntry(
+          dailyEntry.date,
+        )
+
+      const updatedTasks = await getTasks(
+        updatedDailyEntry.id,
+      )
+
+      setDailyEntry(updatedDailyEntry)
+      setTasks(updatedTasks)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  async function handleDeleteTask(
+    taskId: number,
+  ) {
+    try {
+      await deleteTask(taskId)
+
+      setTasks((currentTasks) =>
+        currentTasks.filter(
+          (task) => task.id !== taskId,
+        ),
+      )
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  async function handleEditTask(task: Task) {
+    const title = window.prompt(
+      "Edit task title:",
+      task.title,
     )
 
-    setNewTask({
-      title: "",
-      scheduled_time: "09:00",
-      is_important: false,
-      xp_reward: 10,
-      stat: "intelligence",
-    })
-  } catch (error) {
-    console.error(error)
-  }
-}
+    if (!title?.trim()) {
+      return
+    }
 
-async function handleToggleTask(taskId: number) {
-  try {
-    await toggleTask(taskId)
+    const taskData: TaskUpdate = {
+      title: title.trim(),
+    }
 
-    const updatedDailyEntry = await getDailyEntry(
-      dailyEntry!.date,
-    )
+    try {
+      const updatedTask = await updateTask(
+        task.id,
+        taskData,
+      )
 
-    const updatedTasks = await getTasks(
-      updatedDailyEntry.id,
-    )
-
-    setDailyEntry(updatedDailyEntry)
-    setTasks(updatedTasks)
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-async function handleDeleteTask(taskId: number) {
-  try {
-    await deleteTask(taskId)
-
-    setTasks((currentTasks) =>
-      currentTasks.filter(
-        (task) => task.id !== taskId,
-      ),
-    )
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-async function handleEditTask(task: Task) {
-  const title = window.prompt(
-    "Edit task title:",
-    task.title,
-  )
-
-  if (!title?.trim()) {
-    return
+      setTasks((currentTasks) =>
+        currentTasks.map((currentTask) =>
+          currentTask.id === task.id
+            ? updatedTask
+            : currentTask,
+        ),
+      )
+    } catch (error) {
+      console.error(error)
+    }
   }
 
-  const taskData: TaskUpdate = {
-    title: title.trim(),
+  async function handleCreateActivity(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
+
+    if (
+      !dailyEntry ||
+      !newActivity.title.trim()
+    ) {
+      return
+    }
+
+    try {
+      const createdActivity =
+        await createActivity(
+          dailyEntry.id,
+          newActivity,
+        )
+
+      setActivities(
+        (currentActivities) => [
+          ...currentActivities,
+          createdActivity,
+        ],
+      )
+
+      setNewActivity({
+        title: "",
+        mana_reward: 10,
+        stat: "creativity",
+      })
+    } catch (error) {
+      console.error(error)
+    }
   }
 
-  try {
-    const updatedTask = await updateTask(
-      task.id,
-      taskData,
-    )
+  async function handleCompleteActivity(
+    activityId: number,
+  ) {
+    if (!dailyEntry) {
+      return
+    }
 
-    setTasks((currentTasks) =>
-      currentTasks.map((currentTask) =>
-        currentTask.id === task.id
-          ? updatedTask
-          : currentTask,
-      ),
-    )
-  } catch (error) {
-    console.error(error)
-  }
-}
+    try {
+      await completeActivity(activityId)
 
-async function handleCreateActivity(
-  event: React.FormEvent<HTMLFormElement>,
-) {
-  event.preventDefault()
+      const updatedDailyEntry =
+        await getDailyEntry(
+          dailyEntry.date,
+        )
 
-  if (!dailyEntry || !newActivity.title.trim()) {
-    return
-  }
+      const updatedActivities =
+        await getActivities(
+          updatedDailyEntry.id,
+        )
 
-  try {
-    const createdActivity = await createActivity(
-      dailyEntry.id,
-      newActivity,
-    )
-
-    setActivities((currentActivities) => [
-      ...currentActivities,
-      createdActivity,
-    ])
-
-    setNewActivity({
-      title: "",
-      mana_reward: 10,
-      stat: "creativity",
-    })
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-async function handleCompleteActivity(
-  activityId: number,
-) {
-  if (!dailyEntry) {
-    return
+      setDailyEntry(updatedDailyEntry)
+      setActivities(updatedActivities)
+    } catch (error) {
+      console.error(error)
+    }
   }
 
-  try {
-    await completeActivity(activityId)
+  async function handleCreateQuest(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
 
-    const updatedDailyEntry =
-      await getDailyEntry(dailyEntry.date)
+    if (
+      !dailyEntry ||
+      !newQuest.title.trim()
+    ) {
+      return
+    }
 
-    const updatedActivities =
-      await getActivities(updatedDailyEntry.id)
+    try {
+      const createdQuest =
+        await createQuest(
+          dailyEntry.id,
+          newQuest,
+        )
 
-    setDailyEntry(updatedDailyEntry)
-    setActivities(updatedActivities)
-  } catch (error) {
-    console.error(error)
-  }
-}
+      setQuests((currentQuests) => [
+        ...currentQuests,
+        createdQuest,
+      ])
 
-async function handleCreateQuest(
-  event: React.FormEvent<HTMLFormElement>,
-) {
-  event.preventDefault()
-
-  if (!dailyEntry || !newQuest.title.trim()) {
-    return
-  }
-
-  try {
-    const createdQuest = await createQuest(
-      dailyEntry.id,
-      newQuest,
-    )
-
-    setQuests((currentQuests) => [
-      ...currentQuests,
-      createdQuest,
-    ])
-
-    setNewQuest({
-      title: "",
-    })
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-async function handleToggleQuest(
-  quest: Quest,
-) {
-  try {
-    const updatedQuest = await updateQuest(
-      quest.id,
-      {
-        is_completed: !quest.is_completed,
-      },
-    )
-
-    setQuests((currentQuests) =>
-      currentQuests.map((currentQuest) =>
-        currentQuest.id === quest.id
-          ? updatedQuest
-          : currentQuest,
-      ),
-    )
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-async function handleMoodChange(
-  mood: string,
-) {
-  if (!dailyEntry) {
-    return
+      setNewQuest({
+        title: "",
+      })
+    } catch (error) {
+      console.error(error)
+    }
   }
 
-  try {
-    const updatedDailyEntry = await updateMood(
-      dailyEntry.id,
-      mood,
-    )
+  async function handleToggleQuest(
+    quest: Quest,
+  ) {
+    try {
+      const updatedQuest = await updateQuest(
+        quest.id,
+        {
+          is_completed:
+            !quest.is_completed,
+        },
+      )
 
-    setDailyEntry(updatedDailyEntry)
-  } catch (error) {
-    console.error(error)
+      setQuests((currentQuests) =>
+        currentQuests.map(
+          (currentQuest) =>
+            currentQuest.id === quest.id
+              ? updatedQuest
+              : currentQuest,
+        ),
+      )
+    } catch (error) {
+      console.error(error)
+    }
   }
-}
+
+  async function handleMoodChange(
+    mood: string,
+  ) {
+    if (!dailyEntry) {
+      return
+    }
+
+    try {
+      const updatedDailyEntry =
+        await updateMood(
+          dailyEntry.id,
+          mood,
+        )
+
+      setDailyEntry(updatedDailyEntry)
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   if (loading) {
-    return <p>Loading your daily quest...</p>
+    return (
+      <p>
+        Loading your daily quest...
+      </p>
+    )
   }
 
   if (!dailyEntry) {
-    return <p>Could not load today's planner.</p>
+    return (
+      <p>
+        Could not load today's planner.
+      </p>
+    )
   }
 
   const stats = [
-    ["Intelligence", dailyEntry.intelligence],
-    ["Physical", dailyEntry.physical],
-    ["Creativity", dailyEntry.creativity],
-    ["Social", dailyEntry.social],
-    ["Mental", dailyEntry.mental],
+    [
+      "Intelligence",
+      dailyEntry.intelligence,
+    ],
+    [
+      "Physical",
+      dailyEntry.physical,
+    ],
+    [
+      "Creativity",
+      dailyEntry.creativity,
+    ],
+    [
+      "Social",
+      dailyEntry.social,
+    ],
+    [
+      "Mental",
+      dailyEntry.mental,
+    ],
   ]
 
   return (
     <main className="app">
       <div className="dashboard">
         <header className="header">
-          <h1>Daily Quest</h1>
-          <p>{dailyEntry.date}</p>
+          <div className="planner-date">
+            <button
+              type="button"
+              onClick={() => changeDay(-1)}
+            >
+              ← Previous
+            </button>
+
+            <div>
+              <h1>Daily Quest</h1>
+
+              <p>
+                {formatSelectedDate()}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => changeDay(1)}
+            >
+              Next →
+            </button>
+          </div>
         </header>
 
         <div className="top-grid">
           <section className="panel character-panel">
             <div className="character-header">
-              <div className="avatar">⚔️</div>
+              <div className="avatar">
+                ⚔️
+              </div>
 
               <div>
-                <h2>Level {dailyEntry.level}</h2>
-                <p>Your daily adventure awaits.</p>
+                <h2>
+                  Level {dailyEntry.level}
+                </h2>
+
+                <p>
+                  Your daily adventure awaits.
+                </p>
               </div>
             </div>
 
@@ -353,13 +464,19 @@ async function handleMoodChange(
               <div>
                 <div className="resource-label">
                   <span>HP</span>
-                  <span>{dailyEntry.hp}/100</span>
+
+                  <span>
+                    {dailyEntry.hp}/100
+                  </span>
                 </div>
 
                 <div className="bar">
                   <div
                     className="bar-fill hp"
-                    style={{ width: `${dailyEntry.hp}%` }}
+                    style={{
+                      width:
+                        `${dailyEntry.hp}%`,
+                    }}
                   />
                 </div>
               </div>
@@ -367,13 +484,19 @@ async function handleMoodChange(
               <div>
                 <div className="resource-label">
                   <span>Mana</span>
-                  <span>{dailyEntry.mana}/100</span>
+
+                  <span>
+                    {dailyEntry.mana}/100
+                  </span>
                 </div>
 
                 <div className="bar">
                   <div
                     className="bar-fill mana"
-                    style={{ width: `${dailyEntry.mana}%` }}
+                    style={{
+                      width:
+                        `${dailyEntry.mana}%`,
+                    }}
                   />
                 </div>
               </div>
@@ -381,14 +504,20 @@ async function handleMoodChange(
               <div>
                 <div className="resource-label">
                   <span>XP</span>
-                  <span>{dailyEntry.xp % 100}/100</span>
+
+                  <span>
+                    {dailyEntry.xp % 100}/100
+                  </span>
                 </div>
 
                 <div className="bar">
                   <div
                     className="bar-fill xp"
                     style={{
-                      width: `${dailyEntry.xp % 100}%`,
+                      width:
+                        `${
+                          dailyEntry.xp % 100
+                        }%`,
                     }}
                   />
                 </div>
@@ -400,365 +529,451 @@ async function handleMoodChange(
             <h2>Stats</h2>
 
             <div className="stats-grid">
-              {stats.map(([name, value]) => (
-                <div
-                  className="stat-card"
-                  key={name}
-                >
-                  <span>{name}</span>
-                  <strong>{value}</strong>
-                </div>
-              ))}
+              {stats.map(
+                ([name, value]) => (
+                  <div
+                    className="stat-card"
+                    key={name}
+                  >
+                    <span>{name}</span>
+
+                    <strong>{value}</strong>
+                  </div>
+                ),
+              )}
             </div>
           </section>
         </div>
+
         <div className="mood-card">
-  <span>Mood</span>
+          <span>Mood</span>
 
-  <select
-    value={dailyEntry.mood ?? ""}
-    onChange={(event) =>
-      handleMoodChange(event.target.value)
-    }
-  >
-    <option value="">
-      Select mood
-    </option>
-
-    <option value="happy">
-      Happy
-    </option>
-
-    <option value="calm">
-      Calm
-    </option>
-
-    <option value="tired">
-      Tired
-    </option>
-
-    <option value="sad">
-      Sad
-    </option>
-
-    <option value="stressed">
-      Stressed
-    </option>
-  </select>
-</div>
-        <section className="panel schedule-panel">
-  <div className="section-header">
-    <h2>Today's Schedule</h2>
-    <span>{tasks.length} tasks</span>
-  </div>
-
-  <form
-  className="task-form"
-  onSubmit={handleCreateTask}
->
-  <input
-    type="text"
-    placeholder="What is your next quest?"
-    value={newTask.title}
-    onChange={(event) =>
-      setNewTask({
-        ...newTask,
-        title: event.target.value,
-      })
-    }
-  />
-
-  <input
-    type="time"
-    value={newTask.scheduled_time}
-    onChange={(event) =>
-      setNewTask({
-        ...newTask,
-        scheduled_time: event.target.value,
-      })
-    }
-  />
-
-  <select
-    value={newTask.stat}
-    onChange={(event) =>
-      setNewTask({
-        ...newTask,
-        stat: event.target.value,
-      })
-    }
-  >
-    <option value="intelligence">
-      Intelligence
-    </option>
-    <option value="physical">
-      Physical
-    </option>
-    <option value="creativity">
-      Creativity
-    </option>
-    <option value="social">
-      Social
-    </option>
-    <option value="mental">
-      Mental
-    </option>
-  </select>
-
-  <input
-    type="number"
-    min="1"
-    value={newTask.xp_reward}
-    onChange={(event) =>
-      setNewTask({
-        ...newTask,
-        xp_reward: Number(event.target.value),
-      })
-    }
-  />
-
-  <label className="important-label">
-    <input
-      type="checkbox"
-      checked={newTask.is_important}
-      onChange={(event) =>
-        setNewTask({
-          ...newTask,
-          is_important: event.target.checked,
-        })
-      }
-    />
-    Important
-  </label>
-
-  <button type="submit">
-    Add Quest
-  </button>
-</form>
-
-  <div className="schedule">
-    {tasks.length === 0 ? (
-      <p className="empty-state">
-        No tasks planned yet.
-      </p>
-    ) : (
-      tasks.map((task) => (
-        <div
-  className={`task-item ${
-    task.is_completed
-      ? "completed"
-      : ""
-  }`}
-  key={task.id}
->
-  <input
-    type="checkbox"
-    checked={task.is_completed}
-    onChange={() =>
-      handleToggleTask(task.id)
-    }
-  />
-          <span className="task-time">
-            {task.scheduled_time}
-          </span>
-
-          <div className="task-content">
-            <strong>{task.title}</strong>
-
-            <div className="task-meta">
-              {task.is_important && (
-                <span>Important</span>
-              )}
-
-              <span>
-                +{task.xp_reward} XP
-              </span>
-
-              <span>
-                {task.stat}
-              </span>
-            </div>
-          </div>
-          <div className="task-actions">
-  <button
-    type="button"
-    onClick={() => handleEditTask(task)}
-  >
-    Edit
-  </button>
-
-  <button
-    type="button"
-    onClick={() => handleDeleteTask(task.id)}
-  >
-    Delete
-  </button>
-</div>
-        </div>
-      ))
-    )}
-  </div>
-</section>
-<section className="panel activities-panel">
-  <div className="section-header">
-    <div>
-      <h2>Mana Activities</h2>
-      <span>Recharge your energy</span>
-    </div>
-  </div>
-
-  <form
-    className="activity-form"
-    onSubmit={handleCreateActivity}
-  >
-    <input
-      type="text"
-      placeholder="Watch anime, draw, sing..."
-      value={newActivity.title}
-      onChange={(event) =>
-        setNewActivity({
-          ...newActivity,
-          title: event.target.value,
-        })
-      }
-    />
-
-    <input
-      type="number"
-      min="1"
-      value={newActivity.mana_reward}
-      onChange={(event) =>
-        setNewActivity({
-          ...newActivity,
-          mana_reward: Number(event.target.value),
-        })
-      }
-    />
-
-    <select
-      value={newActivity.stat}
-      onChange={(event) =>
-        setNewActivity({
-          ...newActivity,
-          stat: event.target.value,
-        })
-      }
-    >
-      <option value="intelligence">
-        Intelligence
-      </option>
-      <option value="physical">
-        Physical
-      </option>
-      <option value="creativity">
-        Creativity
-      </option>
-      <option value="social">
-        Social
-      </option>
-      <option value="mental">
-        Mental
-      </option>
-    </select>
-
-    <button type="submit">
-      Add Activity
-    </button>
-  </form>
-
-  <div className="activities-list">
-    {activities.length === 0 ? (
-      <p className="empty-state">
-        No mana activities yet.
-      </p>
-    ) : (
-      activities.map((activity) => (
-        <div
-          className="activity-item"
-          key={activity.id}
-        >
-          <div>
-            <strong>{activity.title}</strong>
-
-            <div className="task-meta">
-              <span>
-                +{activity.mana_reward} Mana
-              </span>
-
-              <span>{activity.stat}</span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() =>
-              handleCompleteActivity(activity.id)
+          <select
+            value={
+              dailyEntry.mood ?? ""
+            }
+            onChange={(event) =>
+              handleMoodChange(
+                event.target.value,
+              )
             }
           >
-            Recharge
-          </button>
+            <option value="">
+              Select mood
+            </option>
+
+            <option value="happy">
+              Happy
+            </option>
+
+            <option value="calm">
+              Calm
+            </option>
+
+            <option value="tired">
+              Tired
+            </option>
+
+            <option value="sad">
+              Sad
+            </option>
+
+            <option value="stressed">
+              Stressed
+            </option>
+          </select>
         </div>
-      ))
-    )}
-  </div>
-</section>
-<section className="panel quests-panel">
-  <div className="section-header">
-    <div>
-      <h2>Quests</h2>
-      <span>Goals bigger than today's tasks</span>
-    </div>
-  </div>
 
-  <form
-    className="quest-form"
-    onSubmit={handleCreateQuest}
-  >
-    <input
-      type="text"
-      placeholder="Your next big quest..."
-      value={newQuest.title}
-      onChange={(event) =>
-        setNewQuest({
-          title: event.target.value,
-        })
-      }
-    />
+        <section className="panel schedule-panel">
+          <div className="section-header">
+            <h2>Today's Schedule</h2>
 
-    <button type="submit">
-      Add Quest
-    </button>
-  </form>
+            <span>
+              {tasks.length} tasks
+            </span>
+          </div>
 
-  <div className="quests-list">
-    {quests.length === 0 ? (
-      <p className="empty-state">
-        No quests yet.
-      </p>
-    ) : (
-      quests.map((quest) => (
-        <div
-          className={`quest-item ${
-            quest.is_completed
-              ? "completed"
-              : ""
-          }`}
-          key={quest.id}
-        >
-          <input
-            type="checkbox"
-            checked={quest.is_completed}
-            onChange={() =>
-              handleToggleQuest(quest)
+          <form
+            className="task-form"
+            onSubmit={handleCreateTask}
+          >
+            <input
+              type="text"
+              placeholder="What is your next quest?"
+              value={newTask.title}
+              onChange={(event) =>
+                setNewTask({
+                  ...newTask,
+                  title:
+                    event.target.value,
+                })
+              }
+            />
+
+            <input
+              type="time"
+              value={
+                newTask.scheduled_time
+              }
+              onChange={(event) =>
+                setNewTask({
+                  ...newTask,
+                  scheduled_time:
+                    event.target.value,
+                })
+              }
+            />
+
+            <select
+              value={newTask.stat}
+              onChange={(event) =>
+                setNewTask({
+                  ...newTask,
+                  stat:
+                    event.target.value,
+                })
+              }
+            >
+              <option value="intelligence">
+                Intelligence
+              </option>
+
+              <option value="physical">
+                Physical
+              </option>
+
+              <option value="creativity">
+                Creativity
+              </option>
+
+              <option value="social">
+                Social
+              </option>
+
+              <option value="mental">
+                Mental
+              </option>
+            </select>
+
+            <input
+              type="number"
+              min="1"
+              value={newTask.xp_reward}
+              onChange={(event) =>
+                setNewTask({
+                  ...newTask,
+                  xp_reward: Number(
+                    event.target.value,
+                  ),
+                })
+              }
+            />
+
+            <label className="important-label">
+              <input
+                type="checkbox"
+                checked={
+                  newTask.is_important
+                }
+                onChange={(event) =>
+                  setNewTask({
+                    ...newTask,
+                    is_important:
+                      event.target.checked,
+                  })
+                }
+              />
+
+              Important
+            </label>
+
+            <button type="submit">
+              Add Quest
+            </button>
+          </form>
+
+          <div className="schedule">
+            {tasks.length === 0 ? (
+              <p className="empty-state">
+                No tasks planned yet.
+              </p>
+            ) : (
+              tasks.map((task) => (
+                <div
+                  className={`task-item ${
+                    task.is_completed
+                      ? "completed"
+                      : ""
+                  }`}
+                  key={task.id}
+                >
+                  <input
+                    type="checkbox"
+                    checked={
+                      task.is_completed
+                    }
+                    onChange={() =>
+                      handleToggleTask(
+                        task.id,
+                      )
+                    }
+                  />
+
+                  <span className="task-time">
+                    {task.scheduled_time}
+                  </span>
+
+                  <div className="task-content">
+                    <strong>
+                      {task.title}
+                    </strong>
+
+                    <div className="task-meta">
+                      {task.is_important && (
+                        <span>
+                          Important
+                        </span>
+                      )}
+
+                      <span>
+                        +{task.xp_reward} XP
+                      </span>
+
+                      <span>
+                        {task.stat}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="task-actions">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleEditTask(
+                          task,
+                        )
+                      }
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDeleteTask(
+                          task.id,
+                        )
+                      }
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        <section className="panel activities-panel">
+          <div className="section-header">
+            <div>
+              <h2>
+                Mana Activities
+              </h2>
+
+              <span>
+                Recharge your energy
+              </span>
+            </div>
+          </div>
+
+          <form
+            className="activity-form"
+            onSubmit={
+              handleCreateActivity
             }
-          />
+          >
+            <input
+              type="text"
+              placeholder="Watch anime, draw, sing..."
+              value={newActivity.title}
+              onChange={(event) =>
+                setNewActivity({
+                  ...newActivity,
+                  title:
+                    event.target.value,
+                })
+              }
+            />
 
-          <strong>{quest.title}</strong>
-        </div>
-      ))
-    )}
-  </div>
-</section>
+            <input
+              type="number"
+              min="1"
+              value={
+                newActivity.mana_reward
+              }
+              onChange={(event) =>
+                setNewActivity({
+                  ...newActivity,
+                  mana_reward: Number(
+                    event.target.value,
+                  ),
+                })
+              }
+            />
+
+            <select
+              value={newActivity.stat}
+              onChange={(event) =>
+                setNewActivity({
+                  ...newActivity,
+                  stat:
+                    event.target.value,
+                })
+              }
+            >
+              <option value="intelligence">
+                Intelligence
+              </option>
+
+              <option value="physical">
+                Physical
+              </option>
+
+              <option value="creativity">
+                Creativity
+              </option>
+
+              <option value="social">
+                Social
+              </option>
+
+              <option value="mental">
+                Mental
+              </option>
+            </select>
+
+            <button type="submit">
+              Add Activity
+            </button>
+          </form>
+
+          <div className="activities-list">
+            {activities.length === 0 ? (
+              <p className="empty-state">
+                No mana activities yet.
+              </p>
+            ) : (
+              activities.map(
+                (activity) => (
+                  <div
+                    className="activity-item"
+                    key={activity.id}
+                  >
+                    <div>
+                      <strong>
+                        {activity.title}
+                      </strong>
+
+                      <div className="task-meta">
+                        <span>
+                          +
+                          {
+                            activity.mana_reward
+                          }{" "}
+                          Mana
+                        </span>
+
+                        <span>
+                          {activity.stat}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleCompleteActivity(
+                          activity.id,
+                        )
+                      }
+                    >
+                      Recharge
+                    </button>
+                  </div>
+                ),
+              )
+            )}
+          </div>
+        </section>
+
+        <section className="panel quests-panel">
+          <div className="section-header">
+            <div>
+              <h2>Quests</h2>
+
+              <span>
+                Goals bigger than today's tasks
+              </span>
+            </div>
+          </div>
+
+          <form
+            className="quest-form"
+            onSubmit={handleCreateQuest}
+          >
+            <input
+              type="text"
+              placeholder="Your next big quest..."
+              value={newQuest.title}
+              onChange={(event) =>
+                setNewQuest({
+                  title:
+                    event.target.value,
+                })
+              }
+            />
+
+            <button type="submit">
+              Add Quest
+            </button>
+          </form>
+
+          <div className="quests-list">
+            {quests.length === 0 ? (
+              <p className="empty-state">
+                No quests yet.
+              </p>
+            ) : (
+              quests.map((quest) => (
+                <div
+                  className={`quest-item ${
+                    quest.is_completed
+                      ? "completed"
+                      : ""
+                  }`}
+                  key={quest.id}
+                >
+                  <input
+                    type="checkbox"
+                    checked={
+                      quest.is_completed
+                    }
+                    onChange={() =>
+                      handleToggleQuest(
+                        quest,
+                      )
+                    }
+                  />
+
+                  <strong>
+                    {quest.title}
+                  </strong>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
       </div>
     </main>
   )
