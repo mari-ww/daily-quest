@@ -10,10 +10,11 @@ import {
   getDailyEntry,
   getQuests,
   getTasks,
-  updateMood,
+  getWeather,
   updateQuest,
   toggleTask,
   updateTask,
+  updateMood,
 } from "./api/client"
 
 import type {
@@ -25,6 +26,7 @@ import type {
   Task,
   TaskCreate,
   TaskUpdate,
+  WeatherData,
 } from "./types/planner"
 
 import "./App.css"
@@ -67,6 +69,9 @@ function App() {
       new Date().toISOString().split("T")[0],
     )
 
+  const [weather, setWeather] =
+  useState<WeatherData | null>(null)
+
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -94,6 +99,23 @@ function App() {
 
   loadPlanner(selectedDate)
 }, [selectedDate])
+
+useEffect(() => {
+  async function loadWeather() {
+    try {
+      const data = await getWeather(
+        -3.7319,
+        -38.5267,
+      )
+
+      setWeather(data)
+    } catch (error) {
+      console.error("Could not load weather:", error)
+    }
+  }
+
+  loadWeather()
+}, [])
 
   function changeDay(days: number) {
     const date = new Date(
@@ -369,6 +391,32 @@ function App() {
     }
   }
 
+function getWeatherLabel(code: number) {
+  const weatherLabels: Record<number, string> = {
+    0: "Clear",
+    1: "Mostly Clear",
+    2: "Partly Cloudy",
+    3: "Cloudy",
+    45: "Foggy",
+    48: "Foggy",
+    51: "Light Drizzle",
+    53: "Drizzle",
+    55: "Heavy Drizzle",
+    61: "Light Rain",
+    63: "Rain",
+    65: "Heavy Rain",
+    71: "Light Snow",
+    73: "Snow",
+    75: "Heavy Snow",
+    80: "Rain Showers",
+    81: "Rain Showers",
+    82: "Heavy Showers",
+    95: "Thunderstorm",
+  }
+
+  return weatherLabels[code] ?? "Unknown"
+}
+
   if (loading) {
     return (
       <p>
@@ -416,6 +464,22 @@ function App() {
     <h1>Daily Quest</h1>
     <p>Your daily adventure awaits.</p>
   </div>
+
+  {weather && (
+  <div className="weather-card">
+    <span className="weather-icon">☀️</span>
+
+    <div>
+      <strong>
+        {Math.round(weather.temperature)}°C
+      </strong>
+
+      <span>
+        {getWeatherLabel(weather.weather_code)}
+      </span>
+    </div>
+  </div>
+)}
 
   <input
     type="date"

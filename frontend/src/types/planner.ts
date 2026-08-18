@@ -64,3 +64,8 @@ export interface Quest {
 export interface QuestCreate {
   title: string
 }
+
+export interface WeatherData {
+  temperature: number
+  weather_code: number
+}

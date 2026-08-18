@@ -247,3 +247,23 @@ export async function updateMood(
 
   return response.json()
 }
+
+export interface WeatherData {
+  temperature: number
+  weather_code: number
+}
+
+export async function getWeather(
+  latitude: number,
+  longitude: number,
+): Promise<WeatherData> {
+  const response = await fetch(
+    `${API_URL}/weather?latitude=${latitude}&longitude=${longitude}`,
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch weather")
+  }
+
+  return response.json()
+}
