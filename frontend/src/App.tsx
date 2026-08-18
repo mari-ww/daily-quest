@@ -35,7 +35,8 @@ function App() {
   const [dailyEntry, setDailyEntry] =
     useState<DailyEntry | null>(null)
 
-  const [tasks, setTasks] = useState<Task[]>([])
+  const [tasks, setTasks] =
+    useState<Task[]>([])
 
   const [newTask, setNewTask] =
     useState<TaskCreate>({
@@ -70,91 +71,85 @@ function App() {
     )
 
   const [weather, setWeather] =
-  useState<WeatherData | null>(null)
+    useState<WeatherData | null>(null)
 
-  const [loading, setLoading] = useState(true)
+  const [avatar, setAvatar] =
+    useState<string | null>(null)
+
+  const [loading, setLoading] =
+    useState(true)
 
   useEffect(() => {
-  async function loadPlanner(date: string) {
-    try {
-      setLoading(true)
+    async function loadPlanner(date: string) {
+      try {
+        setLoading(true)
 
-      const data = await getDailyEntry(date)
+        const data =
+          await getDailyEntry(date)
 
-      const taskData = await getTasks(data.id)
-      const activityData = await getActivities(data.id)
-      const questData = await getQuests(data.id)
+        const taskData =
+          await getTasks(data.id)
 
-      setDailyEntry(data)
-      setTasks(taskData)
-      setActivities(activityData)
-      setQuests(questData)
-    } catch (error) {
-      console.error(error)
-      setDailyEntry(null)
-    } finally {
-      setLoading(false)
+        const activityData =
+          await getActivities(data.id)
+
+        const questData =
+          await getQuests(data.id)
+
+        setDailyEntry(data)
+        setTasks(taskData)
+        setActivities(activityData)
+        setQuests(questData)
+      } catch (error) {
+        console.error(error)
+
+        setDailyEntry(null)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
 
-  loadPlanner(selectedDate)
-}, [selectedDate])
+    loadPlanner(selectedDate)
+  }, [selectedDate])
 
-useEffect(() => {
-  async function loadWeather() {
-    try {
-      const data = await getWeather(
-        -3.7319,
-        -38.5267,
-      )
+  useEffect(() => {
+    async function loadWeather() {
+      try {
+        const data = await getWeather(
+          -3.7319,
+          -38.5267,
+        )
 
-      setWeather(data)
-    } catch (error) {
-      console.error("Could not load weather:", error)
+        setWeather(data)
+      } catch (error) {
+        console.error(
+          "Could not load weather:",
+          error,
+        )
+      }
     }
-  }
 
-  loadWeather()
-}, [])
-
-  function changeDay(days: number) {
-    const date = new Date(
-      `${selectedDate}T12:00:00`,
-    )
-
-    date.setDate(
-      date.getDate() + days,
-    )
-
-    setSelectedDate(
-      date.toISOString().split("T")[0],
-    )
-  }
-
-  function formatSelectedDate() {
-    return new Date(
-      `${selectedDate}T12:00:00`,
-    ).toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-    })
-  }
+    loadWeather()
+  }, [])
 
   async function handleCreateTask(
     event: React.FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault()
 
-    if (!dailyEntry || !newTask.title.trim()) {
+    if (
+      !dailyEntry ||
+      !newTask.title.trim()
+    ) {
       return
     }
 
     try {
-      const createdTask = await createTask(
-        dailyEntry.id,
-        newTask,
-      )
+      const createdTask =
+        await createTask(
+          dailyEntry.id,
+          newTask,
+        )
 
       setTasks((currentTasks) =>
         [...currentTasks, createdTask].sort(
@@ -192,9 +187,10 @@ useEffect(() => {
           dailyEntry.date,
         )
 
-      const updatedTasks = await getTasks(
-        updatedDailyEntry.id,
-      )
+      const updatedTasks =
+        await getTasks(
+          updatedDailyEntry.id,
+        )
 
       setDailyEntry(updatedDailyEntry)
       setTasks(updatedTasks)
@@ -211,7 +207,8 @@ useEffect(() => {
 
       setTasks((currentTasks) =>
         currentTasks.filter(
-          (task) => task.id !== taskId,
+          (task) =>
+            task.id !== taskId,
         ),
       )
     } catch (error) {
@@ -219,7 +216,9 @@ useEffect(() => {
     }
   }
 
-  async function handleEditTask(task: Task) {
+  async function handleEditTask(
+    task: Task,
+  ) {
     const title = window.prompt(
       "Edit task title:",
       task.title,
@@ -234,16 +233,18 @@ useEffect(() => {
     }
 
     try {
-      const updatedTask = await updateTask(
-        task.id,
-        taskData,
-      )
+      const updatedTask =
+        await updateTask(
+          task.id,
+          taskData,
+        )
 
       setTasks((currentTasks) =>
-        currentTasks.map((currentTask) =>
-          currentTask.id === task.id
-            ? updatedTask
-            : currentTask,
+        currentTasks.map(
+          (currentTask) =>
+            currentTask.id === task.id
+              ? updatedTask
+              : currentTask,
         ),
       )
     } catch (error) {
@@ -295,7 +296,9 @@ useEffect(() => {
     }
 
     try {
-      await completeActivity(activityId)
+      await completeActivity(
+        activityId,
+      )
 
       const updatedDailyEntry =
         await getDailyEntry(
@@ -308,7 +311,10 @@ useEffect(() => {
         )
 
       setDailyEntry(updatedDailyEntry)
-      setActivities(updatedActivities)
+
+      setActivities(
+        updatedActivities,
+      )
     } catch (error) {
       console.error(error)
     }
@@ -333,10 +339,12 @@ useEffect(() => {
           newQuest,
         )
 
-      setQuests((currentQuests) => [
-        ...currentQuests,
-        createdQuest,
-      ])
+      setQuests(
+        (currentQuests) => [
+          ...currentQuests,
+          createdQuest,
+        ],
+      )
 
       setNewQuest({
         title: "",
@@ -350,13 +358,14 @@ useEffect(() => {
     quest: Quest,
   ) {
     try {
-      const updatedQuest = await updateQuest(
-        quest.id,
-        {
-          is_completed:
-            !quest.is_completed,
-        },
-      )
+      const updatedQuest =
+        await updateQuest(
+          quest.id,
+          {
+            is_completed:
+              !quest.is_completed,
+          },
+        )
 
       setQuests((currentQuests) =>
         currentQuests.map(
@@ -385,37 +394,111 @@ useEffect(() => {
           mood,
         )
 
-      setDailyEntry(updatedDailyEntry)
+      setDailyEntry(
+        updatedDailyEntry,
+      )
     } catch (error) {
       console.error(error)
     }
   }
 
-function getWeatherLabel(code: number) {
-  const weatherLabels: Record<number, string> = {
-    0: "Clear",
-    1: "Mostly Clear",
-    2: "Partly Cloudy",
-    3: "Cloudy",
-    45: "Foggy",
-    48: "Foggy",
-    51: "Light Drizzle",
-    53: "Drizzle",
-    55: "Heavy Drizzle",
-    61: "Light Rain",
-    63: "Rain",
-    65: "Heavy Rain",
-    71: "Light Snow",
-    73: "Snow",
-    75: "Heavy Snow",
-    80: "Rain Showers",
-    81: "Rain Showers",
-    82: "Heavy Showers",
-    95: "Thunderstorm",
+  function getWeatherLabel(
+    code: number,
+  ) {
+    const weatherLabels:
+      Record<number, string> = {
+        0: "Clear",
+        1: "Mostly Clear",
+        2: "Partly Cloudy",
+        3: "Cloudy",
+        45: "Foggy",
+        48: "Foggy",
+        51: "Light Drizzle",
+        53: "Drizzle",
+        55: "Heavy Drizzle",
+        61: "Light Rain",
+        63: "Rain",
+        65: "Heavy Rain",
+        71: "Light Snow",
+        73: "Snow",
+        75: "Heavy Snow",
+        80: "Rain Showers",
+        81: "Rain Showers",
+        82: "Heavy Showers",
+        95: "Thunderstorm",
+      }
+
+    return (
+      weatherLabels[code] ??
+      "Unknown"
+    )
   }
 
-  return weatherLabels[code] ?? "Unknown"
-}
+  function getWeatherIcon(
+    code: number,
+  ) {
+    if (code === 0 || code === 1) {
+      return "☀️"
+    }
+
+    if (code === 2) {
+      return "⛅"
+    }
+
+    if (code === 3) {
+      return "☁️"
+    }
+
+    if (
+      code === 45 ||
+      code === 48
+    ) {
+      return "🌫️"
+    }
+
+    if (
+      code >= 51 &&
+      code <= 67
+    ) {
+      return "🌧️"
+    }
+
+    if (
+      code >= 71 &&
+      code <= 77
+    ) {
+      return "❄️"
+    }
+
+    if (
+      code >= 80 &&
+      code <= 82
+    ) {
+      return "🌦️"
+    }
+
+    if (code === 95) {
+      return "⛈️"
+    }
+
+    return "🌤️"
+  }
+
+  function handleAvatarChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file =
+      event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    const imageUrl =
+      URL.createObjectURL(file)
+
+    setAvatar(imageUrl)
+  }
 
   if (loading) {
     return (
@@ -459,56 +542,108 @@ function getWeatherLabel(code: number) {
   return (
     <main className="app">
       <div className="dashboard">
-<header className="header">
-  <div>
-    <h1>Daily Quest</h1>
-    <p>Your daily adventure awaits.</p>
-  </div>
 
-  {weather && (
-  <div className="weather-card">
-    <span className="weather-icon">☀️</span>
+        <header className="header">
+          <div>
+            <h1>
+              Daily Quest
+            </h1>
 
-    <div>
-      <strong>
-        {Math.round(weather.temperature)}°C
-      </strong>
+            <p>
+              Your daily adventure awaits.
+            </p>
+          </div>
 
-      <span>
-        {getWeatherLabel(weather.weather_code)}
-      </span>
-    </div>
-  </div>
-)}
+          <div className="header-actions">
+            {weather && (
+              <div className="weather-card">
+                <span className="weather-icon">
+                  {getWeatherIcon(
+                    weather.weather_code,
+                  )}
+                </span>
 
-  <input
-    type="date"
-    value={selectedDate}
-    onChange={(event) =>
-      setSelectedDate(event.target.value)
-    }
-  />
-</header>
+                <div>
+                  <strong>
+                    {Math.round(
+                      weather.temperature,
+                    )}
+                    °C
+                  </strong>
+
+                  <span>
+                    {getWeatherLabel(
+                      weather.weather_code,
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(event) =>
+                setSelectedDate(
+                  event.target.value,
+                )
+              }
+            />
+          </div>
+        </header>
 
         <div className="top-grid">
+
           <section className="panel character-panel">
-            <div className="character-header">
-              <div className="avatar">
-                ⚔️
+
+            <label
+              className="avatar"
+              title="Choose your character image"
+            >
+              {avatar ? (
+                <img
+                  src={avatar}
+                  alt="Character avatar"
+                />
+              ) : (
+                <span>
+                  +
+                </span>
+              )}
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={
+                  handleAvatarChange
+                }
+              />
+            </label>
+
+            <div className="character-info">
+              <div className="character-level">
+                <span className="label">
+                  LEVEL
+                </span>
+
+                <strong>
+                  {dailyEntry.level}
+                </strong>
               </div>
 
-              <div>
-                <h2>
-                  Level {dailyEntry.level}
-                </h2>
+              <div className="character-xp">
+                <span>
+                  XP
+                </span>
 
-                <p>
-                  Your daily adventure awaits.
-                </p>
+                <strong>
+                  {dailyEntry.xp}
+                </strong>
               </div>
             </div>
 
             <div className="resource-list">
+
               <div>
                 <div className="resource-label">
                   <span>HP</span>
@@ -531,7 +666,60 @@ function getWeatherLabel(code: number) {
 
               <div>
                 <div className="resource-label">
-                  <span>Mana</span>
+                  <span>MOOD</span>
+
+                  <select
+                    value={
+                      dailyEntry.mood ?? ""
+                    }
+                    onChange={(event) =>
+                      handleMoodChange(
+                        event.target.value,
+                      )
+                    }
+                  >
+                    <option value="">
+                      Select
+                    </option>
+
+                    <option value="happy">
+                      Happy
+                    </option>
+
+                    <option value="calm">
+                      Calm
+                    </option>
+
+                    <option value="tired">
+                      Tired
+                    </option>
+
+                    <option value="sad">
+                      Sad
+                    </option>
+
+                    <option value="stressed">
+                      Stressed
+                    </option>
+                  </select>
+                </div>
+
+                <div className="bar">
+                  <div
+                    className="bar-fill mood"
+                    style={{
+                      width:
+                        dailyEntry.mood
+                          ? "100%"
+                          : "0%",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="resource-label">
+                  <span>MANA</span>
 
                   <span>
                     {dailyEntry.mana}/100
@@ -549,32 +737,15 @@ function getWeatherLabel(code: number) {
                 </div>
               </div>
 
-              <div>
-                <div className="resource-label">
-                  <span>XP</span>
-
-                  <span>
-                    {dailyEntry.xp % 100}/100
-                  </span>
-                </div>
-
-                <div className="bar">
-                  <div
-                    className="bar-fill xp"
-                    style={{
-                      width:
-                        `${
-                          dailyEntry.xp % 100
-                        }%`,
-                    }}
-                  />
-                </div>
-              </div>
             </div>
           </section>
 
           <section className="panel stats-panel">
-            <h2>Stats</h2>
+            <div className="section-header">
+              <h2>
+                Stats
+              </h2>
+            </div>
 
             <div className="stats-grid">
               {stats.map(
@@ -583,67 +754,40 @@ function getWeatherLabel(code: number) {
                     className="stat-card"
                     key={name}
                   >
-                    <span>{name}</span>
+                    <span>
+                      {name}
+                    </span>
 
-                    <strong>{value}</strong>
+                    <strong>
+                      {value}
+                    </strong>
                   </div>
                 ),
               )}
             </div>
           </section>
-        </div>
 
-        <div className="mood-card">
-          <span>Mood</span>
-
-          <select
-            value={
-              dailyEntry.mood ?? ""
-            }
-            onChange={(event) =>
-              handleMoodChange(
-                event.target.value,
-              )
-            }
-          >
-            <option value="">
-              Select mood
-            </option>
-
-            <option value="happy">
-              Happy
-            </option>
-
-            <option value="calm">
-              Calm
-            </option>
-
-            <option value="tired">
-              Tired
-            </option>
-
-            <option value="sad">
-              Sad
-            </option>
-
-            <option value="stressed">
-              Stressed
-            </option>
-          </select>
         </div>
 
         <section className="panel schedule-panel">
-          <div className="section-header">
-            <h2>Today's Schedule</h2>
 
-            <span>
-              {tasks.length} tasks
-            </span>
+          <div className="section-header">
+            <div>
+              <h2>
+                Today's Schedule
+              </h2>
+
+              <span>
+                {tasks.length} tasks
+              </span>
+            </div>
           </div>
 
           <form
             className="task-form"
-            onSubmit={handleCreateTask}
+            onSubmit={
+              handleCreateTask
+            }
           >
             <input
               type="text"
@@ -777,6 +921,7 @@ function getWeatherLabel(code: number) {
                     </strong>
 
                     <div className="task-meta">
+
                       {task.is_important && (
                         <span>
                           Important
@@ -790,10 +935,12 @@ function getWeatherLabel(code: number) {
                       <span>
                         {task.stat}
                       </span>
+
                     </div>
                   </div>
 
                   <div className="task-actions">
+
                     <button
                       type="button"
                       onClick={() =>
@@ -815,14 +962,17 @@ function getWeatherLabel(code: number) {
                     >
                       Delete
                     </button>
+
                   </div>
                 </div>
               ))
             )}
           </div>
+
         </section>
 
         <section className="panel activities-panel">
+
           <div className="section-header">
             <div>
               <h2>
@@ -841,10 +991,13 @@ function getWeatherLabel(code: number) {
               handleCreateActivity
             }
           >
+
             <input
               type="text"
               placeholder="Watch anime, draw, sing..."
-              value={newActivity.title}
+              value={
+                newActivity.title
+              }
               onChange={(event) =>
                 setNewActivity({
                   ...newActivity,
@@ -871,7 +1024,9 @@ function getWeatherLabel(code: number) {
             />
 
             <select
-              value={newActivity.stat}
+              value={
+                newActivity.stat
+              }
               onChange={(event) =>
                 setNewActivity({
                   ...newActivity,
@@ -904,6 +1059,7 @@ function getWeatherLabel(code: number) {
             <button type="submit">
               Add Activity
             </button>
+
           </form>
 
           <div className="activities-list">
@@ -918,6 +1074,7 @@ function getWeatherLabel(code: number) {
                     className="activity-item"
                     key={activity.id}
                   >
+
                     <div>
                       <strong>
                         {activity.title}
@@ -925,8 +1082,7 @@ function getWeatherLabel(code: number) {
 
                       <div className="task-meta">
                         <span>
-                          +
-                          {
+                          +{
                             activity.mana_reward
                           }{" "}
                           Mana
@@ -948,17 +1104,22 @@ function getWeatherLabel(code: number) {
                     >
                       Recharge
                     </button>
+
                   </div>
                 ),
               )
             )}
           </div>
+
         </section>
 
         <section className="panel quests-panel">
+
           <div className="section-header">
             <div>
-              <h2>Quests</h2>
+              <h2>
+                Quests
+              </h2>
 
               <span>
                 Goals bigger than today's tasks
@@ -968,12 +1129,16 @@ function getWeatherLabel(code: number) {
 
           <form
             className="quest-form"
-            onSubmit={handleCreateQuest}
+            onSubmit={
+              handleCreateQuest
+            }
           >
             <input
               type="text"
               placeholder="Your next big quest..."
-              value={newQuest.title}
+              value={
+                newQuest.title
+              }
               onChange={(event) =>
                 setNewQuest({
                   title:
@@ -988,6 +1153,7 @@ function getWeatherLabel(code: number) {
           </form>
 
           <div className="quests-list">
+
             {quests.length === 0 ? (
               <p className="empty-state">
                 No quests yet.
@@ -1020,8 +1186,11 @@ function getWeatherLabel(code: number) {
                 </div>
               ))
             )}
+
           </div>
+
         </section>
+
       </div>
     </main>
   )
