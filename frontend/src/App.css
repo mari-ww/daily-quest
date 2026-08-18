@@ -167,3 +167,69 @@ input {
     grid-template-columns: 1fr;
   }
 }
+
+.schedule-panel {
+  margin-top: 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+.section-header span {
+  color: #77717d;
+  font-size: 0.9rem;
+}
+
+.schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-item {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f7f5f8;
+}
+
+.task-item.completed {
+  opacity: 0.55;
+}
+
+.task-item.completed strong {
+  text-decoration: line-through;
+}
+
+.task-time {
+  min-width: 50px;
+  font-weight: 600;
+}
+
+.task-content {
+  flex: 1;
+}
+
+.task-meta {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  color: #77717d;
+  font-size: 0.8rem;
+}
+
+.empty-state {
+  color: #77717d;
+  text-align: center;
+  padding: 24px;
+}

@@ -12,3 +12,14 @@ export interface DailyEntry {
   social: number
   mental: number
 }
+
+export interface Task {
+  id: number
+  title: string
+  scheduled_time: string
+  is_completed: boolean
+  is_important: boolean
+  xp_reward: number
+  stat: string
+  daily_entry_id: number
+}

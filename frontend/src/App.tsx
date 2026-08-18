@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react"
 
-import { getDailyEntry } from "./api/client"
-import type { DailyEntry } from "./types/planner"
+import {
+  getDailyEntry,
+  getTasks,
+} from "./api/client"
+
+import type {
+  DailyEntry,
+  Task,
+} from "./types/planner"
+
 import "./App.css"
 
 function App() {
   const [dailyEntry, setDailyEntry] =
     useState<DailyEntry | null>(null)
+
+  const [tasks, setTasks] = useState<Task[]>([])
 
   const [loading, setLoading] = useState(true)
 
@@ -18,7 +28,11 @@ function App() {
     async function loadDailyEntry() {
       try {
         const data = await getDailyEntry(today)
+
+        const taskData = await getTasks(data.id)
+
         setDailyEntry(data)
+        setTasks(taskData)
       } catch (error) {
         console.error(error)
       } finally {
@@ -133,6 +147,53 @@ function App() {
             </p>
           </section>
         </div>
+        <section className="panel schedule-panel">
+  <div className="section-header">
+    <h2>Today's Schedule</h2>
+    <span>{tasks.length} tasks</span>
+  </div>
+
+  <div className="schedule">
+    {tasks.length === 0 ? (
+      <p className="empty-state">
+        No tasks planned yet.
+      </p>
+    ) : (
+      tasks.map((task) => (
+        <div
+          className={`task-item ${
+            task.is_completed
+              ? "completed"
+              : ""
+          }`}
+          key={task.id}
+        >
+          <span className="task-time">
+            {task.scheduled_time}
+          </span>
+
+          <div className="task-content">
+            <strong>{task.title}</strong>
+
+            <div className="task-meta">
+              {task.is_important && (
+                <span>Important</span>
+              )}
+
+              <span>
+                +{task.xp_reward} XP
+              </span>
+
+              <span>
+                {task.stat}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))
+    )}
+  </div>
+</section>
       </div>
     </main>
   )
