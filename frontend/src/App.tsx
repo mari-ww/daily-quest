@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react"
 
 import {
+  completeActivity,
+  createActivity,
   createTask,
   deleteTask,
+  getActivities,
   getDailyEntry,
   getTasks,
   toggleTask,
@@ -10,6 +13,8 @@ import {
 } from "./api/client"
 
 import type {
+  Activity,
+  ActivityCreate,
   DailyEntry,
   Task,
   TaskCreate,
@@ -32,6 +37,16 @@ function App() {
   stat: "intelligence",
 })
 
+const [activities, setActivities] =
+  useState<Activity[]>([])
+
+const [newActivity, setNewActivity] =
+  useState<ActivityCreate>({
+    title: "",
+    mana_reward: 10,
+    stat: "creativity",
+  })
+
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -45,8 +60,11 @@ function App() {
 
         const taskData = await getTasks(data.id)
 
+        const activityData = await getActivities(data.id)
+
         setDailyEntry(data)
         setTasks(taskData)
+        setActivities(activityData)
       } catch (error) {
         console.error(error)
       } finally {
@@ -152,6 +170,59 @@ async function handleEditTask(task: Task) {
           : currentTask,
       ),
     )
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+async function handleCreateActivity(
+  event: React.FormEvent<HTMLFormElement>,
+) {
+  event.preventDefault()
+
+  if (!dailyEntry || !newActivity.title.trim()) {
+    return
+  }
+
+  try {
+    const createdActivity = await createActivity(
+      dailyEntry.id,
+      newActivity,
+    )
+
+    setActivities((currentActivities) => [
+      ...currentActivities,
+      createdActivity,
+    ])
+
+    setNewActivity({
+      title: "",
+      mana_reward: 10,
+      stat: "creativity",
+    })
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+async function handleCompleteActivity(
+  activityId: number,
+) {
+  if (!dailyEntry) {
+    return
+  }
+
+  try {
+    await completeActivity(activityId)
+
+    const updatedDailyEntry =
+      await getDailyEntry(dailyEntry.date)
+
+    const updatedActivities =
+      await getActivities(updatedDailyEntry.id)
+
+    setDailyEntry(updatedDailyEntry)
+    setActivities(updatedActivities)
   } catch (error) {
     console.error(error)
   }
@@ -409,6 +480,109 @@ async function handleEditTask(task: Task) {
     Delete
   </button>
 </div>
+        </div>
+      ))
+    )}
+  </div>
+</section>
+<section className="panel activities-panel">
+  <div className="section-header">
+    <div>
+      <h2>Mana Activities</h2>
+      <span>Recharge your energy</span>
+    </div>
+  </div>
+
+  <form
+    className="activity-form"
+    onSubmit={handleCreateActivity}
+  >
+    <input
+      type="text"
+      placeholder="Watch anime, draw, sing..."
+      value={newActivity.title}
+      onChange={(event) =>
+        setNewActivity({
+          ...newActivity,
+          title: event.target.value,
+        })
+      }
+    />
+
+    <input
+      type="number"
+      min="1"
+      value={newActivity.mana_reward}
+      onChange={(event) =>
+        setNewActivity({
+          ...newActivity,
+          mana_reward: Number(event.target.value),
+        })
+      }
+    />
+
+    <select
+      value={newActivity.stat}
+      onChange={(event) =>
+        setNewActivity({
+          ...newActivity,
+          stat: event.target.value,
+        })
+      }
+    >
+      <option value="intelligence">
+        Intelligence
+      </option>
+      <option value="physical">
+        Physical
+      </option>
+      <option value="creativity">
+        Creativity
+      </option>
+      <option value="social">
+        Social
+      </option>
+      <option value="mental">
+        Mental
+      </option>
+    </select>
+
+    <button type="submit">
+      Add Activity
+    </button>
+  </form>
+
+  <div className="activities-list">
+    {activities.length === 0 ? (
+      <p className="empty-state">
+        No mana activities yet.
+      </p>
+    ) : (
+      activities.map((activity) => (
+        <div
+          className="activity-item"
+          key={activity.id}
+        >
+          <div>
+            <strong>{activity.title}</strong>
+
+            <div className="task-meta">
+              <span>
+                +{activity.mana_reward} Mana
+              </span>
+
+              <span>{activity.stat}</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              handleCompleteActivity(activity.id)
+            }
+          >
+            Recharge
+          </button>
         </div>
       ))
     )}

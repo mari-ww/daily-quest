@@ -39,3 +39,17 @@ export interface TaskUpdate {
   xp_reward?: number
   stat?: string
 }
+
+export interface Activity {
+  id: number
+  title: string
+  mana_reward: number
+  stat: string
+  daily_entry_id: number
+}
+
+export interface ActivityCreate {
+  title: string
+  mana_reward: number
+  stat: string
+}

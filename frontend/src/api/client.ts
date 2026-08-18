@@ -1,4 +1,6 @@
 import type {
+  Activity,
+  ActivityCreate,
   DailyEntry,
   Task,
   TaskCreate,
@@ -109,4 +111,57 @@ export async function deleteTask(
   if (!response.ok) {
     throw new Error("Failed to delete task")
   }
+}
+
+export async function getActivities(
+  dailyEntryId: number,
+): Promise<Activity[]> {
+  const response = await fetch(
+    `${API_URL}/activities/days/${dailyEntryId}`,
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch activities")
+  }
+
+  return response.json()
+}
+
+export async function createActivity(
+  dailyEntryId: number,
+  activity: ActivityCreate,
+): Promise<Activity> {
+  const response = await fetch(
+    `${API_URL}/activities/days/${dailyEntryId}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(activity),
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to create activity")
+  }
+
+  return response.json()
+}
+
+export async function completeActivity(
+  activityId: number,
+): Promise<Activity> {
+  const response = await fetch(
+    `${API_URL}/activities/${activityId}/complete`,
+    {
+      method: "PATCH",
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to complete activity")
+  }
+
+  return response.json()
 }
