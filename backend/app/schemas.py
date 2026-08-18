@@ -50,3 +50,22 @@ class TaskResponse(BaseModel):
     daily_entry_id: int
 
     model_config = ConfigDict(from_attributes=True)
+
+class ActivityCreate(BaseModel):
+    title: str
+    mana_reward: int = 10
+    stat: str | None = None
+
+
+class ActivityResponse(BaseModel):
+    id: int
+    title: str
+    mana_reward: int
+    stat: str | None
+    daily_entry_id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MoodUpdate(BaseModel):
+    mood: str | None = None
