@@ -53,9 +53,48 @@ export async function createTask(
       body: JSON.stringify(task),
     },
   )
-
   if (!response.ok) {
     throw new Error("Failed to create task")
+  }
+
+  return response.json()
+}
+
+export async function getMonthlyEntries(
+  year: number,
+  month: number,
+): Promise<DailyEntry[]> {
+  const response = await fetch(
+    `${API_URL}/days/month/${year}/${month}`,
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch monthly entries")
+  }
+
+  return response.json()
+}
+
+export interface MonthlyStats {
+  intelligence: number
+  physical: number
+  creativity: number
+  social: number
+  mental: number
+}
+
+export async function getMonthlyStats(
+  year: number,
+  month: number,
+): Promise<MonthlyStats> {
+  const response = await fetch(
+    `${API_URL}/stats/month/${year}/${month}`,
+  )
+
+  if (!response.ok) {
+    throw new Error(
+      "Failed to fetch monthly stats",
+    )
   }
 
   return response.json()
@@ -112,6 +151,23 @@ export async function deleteTask(
 
   if (!response.ok) {
     throw new Error("Failed to delete task")
+  }
+}
+
+export async function deleteActivity(
+  activityId: number,
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/activities/${activityId}`,
+    {
+      method: "DELETE",
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error(
+      "Failed to delete activity",
+    )
   }
 }
 

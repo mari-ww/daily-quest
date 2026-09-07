@@ -16,42 +16,43 @@ export interface DailyEntry {
 export interface Task {
   id: number
   title: string
-  scheduled_time: string
+  scheduled_time: string | null
   is_completed: boolean
   is_important: boolean
   xp_reward: number
-  stat: string
+  stats: string[]
   daily_entry_id: number
 }
 
 export interface TaskCreate {
   title: string
-  scheduled_time: string
+  scheduled_time: string | null
   is_important: boolean
   xp_reward: number
-  stat: string
+  stats: string[]
 }
 
 export interface TaskUpdate {
   title?: string
-  scheduled_time?: string
+  scheduled_time?: string | null
   is_important?: boolean
   xp_reward?: number
-  stat?: string
+  stats?: string[]
 }
 
 export interface Activity {
   id: number
   title: string
   mana_reward: number
-  stat: string
+  stat: string | null
+  is_completed: boolean
   daily_entry_id: number
 }
 
 export interface ActivityCreate {
   title: string
   mana_reward: number
-  stat: string
+  stat: string | null
 }
 
 export interface Quest {

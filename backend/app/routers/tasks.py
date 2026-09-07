@@ -2,13 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db
-from app.models import DailyEntry, Task
+from app.models import DailyEntry, Task, TaskStat
 from app.schemas import TaskCreate, TaskResponse, TaskUpdate
-from app.services.gamification import (
-    calculate_level,
-    update_hp,
-    update_stat,
-)
+from app.services.gamification import calculate_level
 
 
 router = APIRouter(
@@ -36,11 +32,23 @@ def create_task(
         )
 
     task = Task(
-        **task_data.model_dump(),
+        title=task_data.title,
+        scheduled_time=task_data.scheduled_time,
+        is_important=task_data.is_important,
+        xp_reward=task_data.xp_reward,
         daily_entry_id=daily_entry_id,
     )
 
     db.add(task)
+    db.flush()
+
+    for stat in task_data.stats:
+        task_stat = TaskStat(
+            task_id=task.id,
+            stat=stat,
+        )
+        db.add(task_stat)
+
     db.commit()
     db.refresh(task)
 
@@ -80,10 +88,22 @@ def update_task(
             detail="Task not found",
         )
 
-    for field, value in task_data.model_dump(
+    update_data = task_data.model_dump(
         exclude_unset=True,
-    ).items():
+    )
+
+    stats = update_data.pop("stats", None)
+
+    for field, value in update_data.items():
         setattr(task, field, value)
+
+    if stats is not None:
+        task.task_stats.clear()
+
+        for stat in stats:
+            task.task_stats.append(
+                TaskStat(stat=stat)
+            )
 
     db.commit()
     db.refresh(task)
@@ -109,44 +129,74 @@ def toggle_task(
 
     daily_entry = task.daily_entry
 
+    # -----------------------------------------
+    # UNCOMPLETE TASK
+    # -----------------------------------------
+
     if task.is_completed:
         task.is_completed = False
 
+        # Remove XP previously gained.
         daily_entry.xp = max(
             0,
             daily_entry.xp - task.xp_reward,
         )
 
-        update_stat(
-            daily_entry,
-            task.stat,
-            -1,
+        # Refund the MP previously spent.
+        daily_entry.mana = min(
+            100,
+            daily_entry.mana + task.xp_reward,
         )
 
-        update_hp(
-            daily_entry,
-            task.is_important,
-            -10,
-        )
+        # Remove stat points previously gained.
+        for task_stat in task.task_stats:
+            current_value = getattr(
+                daily_entry,
+                task_stat.stat,
+            )
+
+            setattr(
+                daily_entry,
+                task_stat.stat,
+                max(
+                    0,
+                    current_value - 1,
+                ),
+            )
+
+    # -----------------------------------------
+    # COMPLETE TASK
+    # -----------------------------------------
 
     else:
         task.is_completed = True
 
+        # XP gained.
         daily_entry.xp += task.xp_reward
 
-        update_stat(
-            daily_entry,
-            task.stat,
-            1,
+        # MP cost is equal to the XP reward.
+        daily_entry.mana = max(
+            0,
+            daily_entry.mana - task.xp_reward,
         )
 
-        update_hp(
-            daily_entry,
-            task.is_important,
-            10,
-        )
+        # Grant stat points.
+        for task_stat in task.task_stats:
+            current_value = getattr(
+                daily_entry,
+                task_stat.stat,
+            )
 
-    daily_entry.level = calculate_level(daily_entry.xp)
+            setattr(
+                daily_entry,
+                task_stat.stat,
+                current_value + 1,
+            )
+
+    # Recalculate level after XP changes.
+    daily_entry.level = calculate_level(
+        daily_entry.xp
+    )
 
     db.commit()
     db.refresh(task)

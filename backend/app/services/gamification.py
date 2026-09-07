@@ -6,23 +6,17 @@ VALID_STATS = {
     "mental",
 }
 
+TASK_STAT_REWARD = 1
+ACTIVITY_STAT_REWARD = 5
+XP_STEP = 10
+
 
 def calculate_level(total_xp: int) -> int:
     return total_xp // 100 + 1
 
 
-def update_stat(
-    daily_entry,
-    stat: str | None,
-    amount: int,
-) -> None:
-    if stat in VALID_STATS:
-        current_value = getattr(daily_entry, stat)
-        setattr(
-            daily_entry,
-            stat,
-            max(0, current_value + amount),
-        )
+def is_valid_stat(stat: str | None) -> bool:
+    return stat in VALID_STATS
 
 
 def update_hp(
