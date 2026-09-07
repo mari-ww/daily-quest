@@ -310,9 +310,6 @@ export default function App() {
   const [clockBackground, setClockBackground] =
     useState<string | null>(null)
 
-  const [clockBackgroundOpacity, setClockBackgroundOpacity] =
-    useState(0.85)
-
   const [editingProfile, setEditingProfile] =
     useState(false)
 
