@@ -18,7 +18,7 @@ const DEMO_YOUTUBE_ID = "vpMTehdSKw8";
 const DEMO_YOUTUBE_START = 1835;
 
 const state = {
-  name: "Mariana",
+  name: "Sua",
 
   level: 7,
   xp: 340,
@@ -30,63 +30,63 @@ const state = {
   mood: "good",
 
   tasks: [
-    {
-      id: 1,
-      title: "Study Japanese",
-      is_completed: true,
-      is_important: false,
-      xp_reward: 20,
-      stats: ["intelligence"],
-    },
-    {
-      id: 2,
-      title: "Work on portfolio",
-      is_completed: false,
-      is_important: true,
-      xp_reward: 30,
-      stats: ["creativity", "intelligence"],
-    },
-    {
-      id: 3,
-      title: "Practice singing",
-      is_completed: false,
-      is_important: false,
-      xp_reward: 20,
-      stats: ["creativity"],
-    },
-    {
-      id: 4,
-      title: "Go for a walk",
-      is_completed: true,
-      is_important: false,
-      xp_reward: 10,
-      stats: ["physical"],
-    },
-  ],
+  {
+    id: 1,
+    title: "Rehearse today's stage performance",
+    is_completed: true,
+    is_important: false,
+    xp_reward: 20,
+    stats: ["creativity"],
+  },
+  {
+    id: 2,
+    title: "Practice vocals until the lights go out",
+    is_completed: false,
+    is_important: true,
+    xp_reward: 30,
+    stats: ["creativity", "mental"],
+  },
+  {
+    id: 3,
+    title: "Study the next song's lyrics",
+    is_completed: false,
+    is_important: false,
+    xp_reward: 20,
+    stats: ["intelligence"],
+  },
+  {
+    id: 4,
+    title: "Survive another day under the spotlight",
+    is_completed: true,
+    is_important: false,
+    xp_reward: 10,
+    stats: ["mental"],
+  },
+],
 
-  activities: [
-    {
-      id: 1,
-      title: "Watch an anime",
-      mana_reward: 20,
-      stat: "mental",
-      is_completed: false,
-    },
-    {
-      id: 2,
-      title: "Listen to music",
-      mana_reward: 15,
-      stat: "creativity",
-      is_completed: true,
-    },
-    {
-      id: 3,
-      title: "Play a game",
-      mana_reward: 25,
-      stat: "mental",
-      is_completed: false,
-    },
-  ],
+activities: [
+  {
+    id: 1,
+    title: "Listen to Mizi's favorite songs",
+    mana_reward: 20,
+    stat: "mental",
+    is_completed: false,
+  },
+  {
+    id: 2,
+    title: "Rewatch Mizi's stage performance",
+    mana_reward: 15,
+    stat: "creativity",
+    is_completed: true,
+  },
+  {
+    id: 3,
+    title: "Write a song for Mizi",
+    mana_reward: 25,
+    stat: "creativity",
+    is_completed: false,
+  },
+],
 
   monthlyStats: {
     intelligence: 68,
@@ -688,7 +688,7 @@ function saveProfile() {
     input.value.trim();
 
   state.name =
-    value || "Mariana";
+    value || "Sua";
 
   state.editingProfile = false;
 
