@@ -2,7 +2,7 @@
 
 > A dark gamified daily planner that combines everyday productivity with RPG-style progression.
 
-[![Demo](https://img.shields.io/badge/✦_Interactive_Demo-6B8F71?style=for-the-badge)](https://mari-ww.github.io/daily-quest/demo/)
+[![Demo](https://img.shields.io/badge/✦_Interactive_Demo-7C3AED?style=for-the-badge)](https://mari-ww.github.io/daily-quest/demo/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square\&logo=python\&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square\&logo=fastapi\&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-20232A?style=flat-square\&logo=react\&logoColor=61DAFB)](https://react.dev/)
